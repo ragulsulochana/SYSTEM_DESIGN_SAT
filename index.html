@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Athenaeum | Public & Digital Lending Guild</title>
+  
+  <!-- Editorial Typography: Newsreader (Serif) & Plus Jakarta Sans (UI Sans) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            serif: ['"Newsreader"', 'Georgia', 'serif'],
+            sans: ['"Plus Jakarta Sans"', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            ink: {
+              900: '#18181b',
+              800: '#27272a',
+              700: '#3f3f46',
+              500: '#71717a',
+              400: '#a1a1aa'
+            },
+            paper: {
+              50: '#fcfbf9',
+              100: '#f7f6f2',
+              200: '#edece6',
+              300: '#dfddd3'
+            },
+            forest: {
+              700: '#15803d',
+              800: '#166534',
+              900: '#14532d'
+            },
+            oxford: {
+              800: '#1e293b',
+              900: '#0f172a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Human editorial craftsmanship: subtle textures & hairline borders */
+    body {
+      background-color: #faf9f6;
+      color: #1c1917;
+    }
+
+    /* Tactile book card hover */
+    .book-card {
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+    }
+    .book-card:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Modal animations */
+    .modal-enter {
+      animation: modalFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.98) translateY(6px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* Toast animation */
+    .toast-slide {
+      animation: toastIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+
+<body class="font-sans antialiased min-h-screen flex flex-col selection:bg-stone-800 selection:text-white">
+
+  <!-- ========================================================================= -->
+  <!-- FLOATING TOAST STACK -->
+  <!-- ========================================================================= -->
+  <div id="toast-container" class="fixed top-5 right-5 z-[9999] flex flex-col gap-2.5 pointer-events-none max-w-md w-full px-4 sm:px-0"></div>
+
+  <!-- ========================================================================= -->
+  <!-- INSTITUTION HEADER -->
+  <!-- ========================================================================= -->
+  <header class="bg-white border-b border-stone-200/90 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-20">
+        
+        <!-- Brand & Crest -->
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 rounded-lg bg-stone-900 text-stone-100 flex items-center justify-center font-serif text-xl font-bold border border-stone-800 shadow-sm">
+            <span>A</span>
+          </div>
+          <div>
+            <div class="flex items-center gap-2.5">
+              <span class="font-serif text-xl font-bold tracking-tight text-stone-900">The Athenaeum</span>
+              <span class="hidden sm:inline-block px-2 py-0.5 text-[11px] font-semibold tracking-wide uppercase bg-stone-100 text-stone-600 rounded border border-stone-200">Public Stacks</span>
+            </div>
+            <p class="text-xs text-stone-500 font-normal">Circulation & Digital Lending Management</p>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs & Backend Status -->
+        <div class="flex items-center gap-4">
+          <!-- Backend Connection Status Pill -->
+          <div id="api-status-pill" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-stone-100 text-stone-600 border border-stone-200" title="Backend API synchronization status">
+            <span id="api-status-dot" class="w-2 h-2 rounded-full bg-amber-500"></span>
+            <span id="api-status-text">Checking API...</span>
+          </div>
+
+          <!-- Active Patron Context -->
+          <div class="hidden md:flex items-center gap-3 pl-4 border-l border-stone-200">
+            <div class="text-right">
+              <div class="text-xs font-semibold text-stone-900">Clara Oswald</div>
+              <div class="text-[11px] text-stone-500">ID: <span class="font-mono text-stone-700">LIB-1001</span></div>
+            </div>
+            <div class="w-8 h-8 rounded-full bg-stone-200 text-stone-700 flex items-center justify-center text-xs font-bold border border-stone-300">
+              CO
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Segmented View Controller Bar -->
+      <div class="flex items-center justify-between pt-1 pb-3">
+        <nav class="flex items-center gap-1 bg-stone-100 p-1 rounded-xl border border-stone-200/80">
+          <button 
+            id="tab-btn-catalog" 
+            onclick="switchView('catalog')" 
+            class="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all bg-white text-stone-900 shadow-sm border border-stone-200/60"
+          >
+            <i class="fa-solid fa-book-open text-xs text-stone-700"></i>
+            <span>Library Catalog</span>
+            <span id="badge-catalog-count" class="px-1.5 py-0.2 rounded-full bg-stone-100 text-[10px] text-stone-600 font-mono font-medium">6</span>
+          </button>
+          
+          <button 
+            id="tab-btn-users" 
+            onclick="switchView('users')" 
+            class="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all text-stone-600 hover:text-stone-900 hover:bg-stone-50"
+          >
+            <i class="fa-solid fa-users text-xs text-stone-500"></i>
+            <span>Patron Directory (Admin)</span>
+            <span id="badge-users-count" class="px-1.5 py-0.2 rounded-full bg-stone-200 text-[10px] text-stone-600 font-mono font-medium">6</span>
+          </button>
+        </nav>
+
+        <!-- Right Side View Utility -->
+        <div class="flex items-center gap-2">
+          <button onclick="checkBackendConnection(true)" class="text-xs text-stone-500 hover:text-stone-800 flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-transparent hover:border-stone-200 transition-colors">
+            <i class="fa-solid fa-arrows-rotate text-[11px]"></i>
+            <span class="hidden sm:inline">Sync Backend</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN APPLICATION CONTENT -->
+  <!-- ========================================================================= -->
+  <main class="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- VIEW 1: LIBRARY CATALOG & CIRCULATION (USER VIEW) -->
+    <!-- ----------------------------------------------------------------------- -->
+    <section id="view-catalog" class="space-y-6">
+      
+      <!-- Catalog Introduction & Live Stats Strip -->
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-4 border-b border-stone-200">
+        <div>
+          <h1 class="font-serif text-3xl font-bold text-stone-900 tracking-tight">Bibliographic Catalog</h1>
+          <p class="text-sm text-stone-600 mt-1 max-w-2xl">
+            Search physical shelf holdings and digital archives. Borrowed items reflect optimistic concurrency control for concurrent checkouts.
+          </p>
+        </div>
+
+        <!-- Quick Numerical Counters -->
+        <div class="flex items-center gap-6 text-xs text-stone-600 bg-white px-4 py-2.5 rounded-xl border border-stone-200/90 shadow-sm">
+          <div>
+            <span class="text-stone-400 block text-[10px] uppercase font-semibold">Available</span>
+            <span id="stat-avail-count" class="font-mono text-base font-bold text-emerald-800">4</span>
+          </div>
+          <div class="h-6 w-px bg-stone-200"></div>
+          <div>
+            <span class="text-stone-400 block text-[10px] uppercase font-semibold">On Loan</span>
+            <span id="stat-loaned-count" class="font-mono text-base font-bold text-amber-800">2</span>
+          </div>
+          <div class="h-6 w-px bg-stone-200"></div>
+          <div>
+            <span class="text-stone-400 block text-[10px] uppercase font-semibold">Reserved</span>
+            <span id="stat-reserved-count" class="font-mono text-base font-bold text-stone-800">1</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search & Filtering Toolbar -->
+      <div class="bg-white p-3.5 sm:p-4 rounded-xl border border-stone-200 shadow-sm flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <!-- Search Input -->
+        <div class="relative flex-1">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 text-xs"></i>
+          <input 
+            type="text" 
+            id="catalog-search-input"
+            oninput="handleSearch(this.value)"
+            placeholder="Search by title, author name, or ISBN..." 
+            class="w-full pl-9 pr-8 py-2 rounded-lg border border-stone-200 text-xs sm:text-sm placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-900 focus:border-stone-900 transition-colors"
+          >
+          <button id="btn-clear-search" onclick="clearSearch()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600">
+            <i class="fa-solid fa-circle-xmark text-xs"></i>
+          </button>
+        </div>
+
+        <!-- Filter Chips: All, Available, On Loan, Digital -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+          <button onclick="setFilter('ALL')" id="filter-all" class="px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-stone-900 text-white">
+            All Titles
+          </button>
+          <button onclick="setFilter('AVAILABLE')" id="filter-avail" class="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-stone-100 text-stone-700 hover:bg-stone-200">
+            Available on Shelf
+          </button>
+          <button onclick="setFilter('LOANED')" id="filter-loaned" class="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-stone-100 text-stone-700 hover:bg-stone-200">
+            Checked Out
+          </button>
+          <button onclick="setFilter('DIGITAL')" id="filter-digital" class="px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-stone-100 text-stone-700 hover:bg-stone-200">
+            Digital Stream
+          </button>
+        </div>
+      </div>
+
+      <!-- Book Grid Container -->
+      <div id="catalog-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="catalog-empty" class="hidden bg-white p-12 text-center rounded-2xl border border-dashed border-stone-300">
+        <i class="fa-solid fa-book text-stone-300 text-4xl mb-3"></i>
+        <h3 class="font-serif text-lg font-bold text-stone-800">No catalog records match your query</h3>
+        <p class="text-xs text-stone-500 mt-1 mb-4">Try clearing your search terms or verify the spelling of the author or title.</p>
+        <button onclick="clearSearch()" class="px-4 py-2 bg-stone-900 text-white rounded-lg text-xs font-semibold hover:bg-stone-800 transition-colors">
+          Reset Catalog Filters
+        </button>
+      </div>
+
+    </section>
+
+    <!-- ----------------------------------------------------------------------- -->
+    <!-- VIEW 2: PATRON DIRECTORY CRUD (ADMIN VIEW) -->
+    <!-- ----------------------------------------------------------------------- -->
+    <section id="view-users" class="hidden space-y-6">
+      
+      <!-- Section Header -->
+      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-4 border-b border-stone-200">
+        <div>
+          <h1 class="font-serif text-3xl font-bold text-stone-900 tracking-tight">Patron Membership Directory</h1>
+          <p class="text-sm text-stone-600 mt-1">
+            Official registrar database for active library cards, borrowing limits, and standing verification.
+          </p>
+        </div>
+
+        <button 
+          onclick="openAddUserModal()" 
+          class="inline-flex items-center gap-2 px-4 py-2 bg-stone-900 hover:bg-stone-800 text-white rounded-lg text-xs sm:text-sm font-semibold shadow-sm transition-colors"
+        >
+          <i class="fa-solid fa-user-plus text-xs"></i>
+          <span>Enroll New Patron</span>
+        </button>
+      </div>
+
+      <!-- Table Search & Filter Bar -->
+      <div class="bg-white p-3.5 sm:p-4 rounded-xl border border-stone-200 shadow-sm flex items-center justify-between gap-4">
+        <div class="relative flex-1 max-w-md">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400 text-xs"></i>
+          <input 
+            type="text" 
+            id="user-search-input"
+            oninput="handleUserSearch(this.value)"
+            placeholder="Filter members by name, email, country, or ID..." 
+            class="w-full pl-9 pr-4 py-2 rounded-lg border border-stone-200 text-xs sm:text-sm placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-900 focus:border-stone-900 transition-colors"
+          >
+        </div>
+        <div class="text-xs text-stone-500 font-medium">
+          Showing <span id="user-count-label" class="font-mono font-bold text-stone-900">0</span> registered patrons
+        </div>
+      </div>
+
+      <!-- Sleek Editorial Patrons Table -->
+      <div class="bg-white rounded-xl border border-stone-200 shadow-sm overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-stone-50/80 border-b border-stone-200 text-[11px] font-bold uppercase tracking-wider text-stone-500">
+                <th class="py-3 px-5">Patron Card ID</th>
+                <th class="py-3 px-5">Full Name</th>
+                <th class="py-3 px-5">Institutional Email</th>
+                <th class="py-3 px-5">Country</th>
+                <th class="py-3 px-5">Account Standing</th>
+                <th class="py-3 px-5 text-center">Active Loans</th>
+                <th class="py-3 px-5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-table-body" class="divide-y divide-stone-100 text-xs sm:text-sm">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: ADD / EDIT PATRON (CRUD) -->
+  <!-- ========================================================================= -->
+  <div id="user-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+    <div onclick="closeUserModal()" class="fixed inset-0 bg-stone-900/40 backdrop-blur-xs transition-opacity"></div>
+    <div class="modal-enter relative bg-white w-full max-w-lg rounded-xl shadow-xl border border-stone-200 p-6 z-10">
+      
+      <div class="flex items-center justify-between pb-4 border-b border-stone-100">
+        <div>
+          <h3 id="user-modal-title" class="font-serif font-bold text-xl text-stone-900">Enroll New Patron</h3>
+          <p id="user-modal-subtitle" class="text-xs text-stone-500">Issue library credentials and assign borrowing privileges.</p>
+        </div>
+        <button onclick="closeUserModal()" class="text-stone-400 hover:text-stone-600 p-1">
+          <i class="fa-solid fa-xmark text-base"></i>
+        </button>
+      </div>
+
+      <form id="user-form" onsubmit="handleUserFormSubmit(event)" class="mt-4 space-y-4 text-xs">
+        <input type="hidden" id="form-user-mode" value="create">
+
+        <div>
+          <label class="block font-semibold text-stone-700 uppercase tracking-wider text-[10px] mb-1">Patron Card ID</label>
+          <input 
+            type="text" 
+            id="form-user-id" 
+            required
+            placeholder="e.g. LIB-1088" 
+            class="w-full px-3 py-2 rounded-lg border border-stone-200 font-mono text-xs focus:outline-none focus:border-stone-900"
+          >
+        </div>
+
+        <div>
+          <label class="block font-semibold text-stone-700 uppercase tracking-wider text-[10px] mb-1">Full Legal Name</label>
+          <input 
+            type="text" 
+            id="form-user-name" 
+            required
+            placeholder="e.g. Dr. Catherine Bennett" 
+            class="w-full px-3 py-2 rounded-lg border border-stone-200 text-xs focus:outline-none focus:border-stone-900"
+          >
+        </div>
+
+        <div>
+          <label class="block font-semibold text-stone-700 uppercase tracking-wider text-[10px] mb-1">Email Address</label>
+          <input 
+            type="email" 
+            id="form-user-email" 
+            required
+            placeholder="catherine.bennett@oxford.edu" 
+            class="w-full px-3 py-2 rounded-lg border border-stone-200 text-xs focus:outline-none focus:border-stone-900"
+          >
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-semibold text-stone-700 uppercase tracking-wider text-[10px] mb-1">Country / Region</label>
+            <input 
+              type="text" 
+              id="form-user-country" 
+              required
+              placeholder="United Kingdom" 
+              class="w-full px-3 py-2 rounded-lg border border-stone-200 text-xs focus:outline-none focus:border-stone-900"
+            >
+          </div>
+
+          <div>
+            <label class="block font-semibold text-stone-700 uppercase tracking-wider text-[10px] mb-1">Account Standing</label>
+            <select id="form-user-status" class="w-full px-3 py-2 rounded-lg border border-stone-200 text-xs bg-white focus:outline-none focus:border-stone-900">
+              <option value="ACTIVE">ACTIVE (In Good Standing)</option>
+              <option value="PENDING">PENDING (Verification)</option>
+              <option value="SUSPENDED">SUSPENDED (Policy Hold)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="pt-4 border-t border-stone-100 flex items-center justify-end gap-2.5">
+          <button type="button" onclick="closeUserModal()" class="px-3.5 py-2 rounded-lg border border-stone-200 text-stone-600 hover:bg-stone-50 font-medium">
+            Cancel
+          </button>
+          <button type="submit" id="btn-save-user" class="px-4 py-2 rounded-lg bg-stone-900 text-white font-semibold hover:bg-stone-800 shadow-sm">
+            Save Record
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: DIGITAL E-READER PREVIEW -->
+  <!-- ========================================================================= -->
+  <div id="reader-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden">
+    <div onclick="closeReaderModal()" class="fixed inset-0 bg-stone-900/50 backdrop-blur-xs"></div>
+    <div class="modal-enter relative bg-[#fcfbf9] w-full max-w-2xl rounded-xl shadow-2xl border border-stone-200 overflow-hidden z-10 flex flex-col max-h-[90vh]">
+      
+      <!-- Reader Header -->
+      <div class="p-4 bg-white border-b border-stone-200 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-stone-100 text-stone-800 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-feather"></i>
+          </div>
+          <div>
+            <h4 id="reader-book-title" class="font-serif font-bold text-base text-stone-900 truncate max-w-md">Book Title</h4>
+            <span id="reader-book-author" class="text-xs text-stone-500 font-serif italic">Author</span>
+          </div>
+        </div>
+        <button onclick="closeReaderModal()" class="text-stone-400 hover:text-stone-700 p-1">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Reader Body Text -->
+      <div class="p-6 overflow-y-auto space-y-4 font-serif text-stone-800 text-base leading-relaxed">
+        <div class="text-center pb-4 border-b border-stone-200/60">
+          <span class="text-[11px] font-sans uppercase tracking-widest text-stone-400 font-semibold">Ex Libris Athenaeum • Digital Lending Edition</span>
+        </div>
+        <p class="first-letter:text-4xl first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:font-serif">
+          In any distributed data architecture, consistency guarantees must always be reasoned about alongside network partition tolerances. Under peak concurrency, coordinated consensus algorithms like Raft and Paxos ensure state machine replication remains deterministic, regardless of transient transport jitter.
+        </p>
+        <p>
+          Optimistic concurrency control eliminates heavyweight table-level mutual exclusion by attaching a monotonically increasing version stamp. Should two clients attempt simultaneous updates, the database rejects stale commits with a serializable conflict.
+        </p>
+      </div>
+
+      <!-- Reader Footer -->
+      <div class="p-3.5 bg-stone-50 border-t border-stone-200 flex items-center justify-between text-xs text-stone-500">
+        <span>Digital Circulation Token: <span class="font-mono text-stone-700">AUTH-OK-9021</span></span>
+        <button onclick="closeReaderModal(); showToast('EPUB license stream loaded successfully!', 'success');" class="px-3.5 py-1.5 bg-stone-900 text-white rounded-lg font-semibold hover:bg-stone-800">
+          Done Reading
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT: STATE MANAGEMENT & SPRING BOOT REST INTEGRATION -->
+  <!-- ========================================================================= -->
+  <script>
+    /**
+     * ========================================================================
+     * ATHENAEUM LIBRARY FRONTEND ENGINE
+     * Connects to Spring Boot REST APIs with optimistic concurrency conflict
+     * handling, with seamless fallback to in-memory mock persistence.
+     * ========================================================================
+     */
+
+    // Adaptive API Base: matches current origin when served via Express, or falls back to port 5000
+    const API_BASE = window.location.origin.startsWith('http') 
+      ? `${window.location.origin}/api` 
+      : 'http://localhost:5000/api';
+    let isBackendLive = false;
+
+    // In-memory fallback dataset for instant zero-dependency execution
+    let localBooks = [
+      {
+        isbn: "978-1449373320",
+        title: "Designing Data-Intensive Applications",
+        author: "Martin Kleppmann",
+        subject: "Distributed Systems",
+        publicationYear: 2017,
+        callNumber: "QA76.9 .K55 2017",
+        description: "The definitive reference guide for distributed reliability, replication logs, and storage engines.",
+        coverImage: "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=600&q=80",
+        displayStatus: "AVAILABLE",
+        activeBarcode: "BC-1001-A",
+        shelfLocation: "Stack 4 • Shelf A",
+        availableCopies: 1,
+        totalCopies: 2
+      },
+      {
+        isbn: "978-0134494166",
+        title: "Clean Architecture: A Craftsman's Guide",
+        author: "Robert C. Martin",
+        subject: "Software Engineering",
+        publicationYear: 2018,
+        callNumber: "QA76.76 .C65 M37",
+        description: "Universal architectural principles separating domain business rules from external frameworks.",
+        coverImage: "https://images.unsplash.com/photo-1532012164546-f432f2e3777f?auto=format&fit=crop&w=600&q=80",
+        displayStatus: "AVAILABLE",
+        activeBarcode: "BC-1002-A",
+        shelfLocation: "Stack 3 • Shelf C",
+        availableCopies: 1,
+        totalCopies: 1
+      },
+      {
+        isbn: "978-0262510875",
+        title: "Structure and Interpretation of Computer Programs",
+        author: "Harold Abelson, Gerald Jay Sussman",
+        subject: "Computer Science",
+        publicationYear: 1996,
+        callNumber: "QA76.6 .A255",
+        description: "Foundational MIT masterpiece exploring abstraction layers, functional procedures, and metalinguistic programming.",
+        coverImage: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=600&q=80",
+        displayStatus: "DIGITAL",
+        activeBarcode: "BC-1003-A",
+        shelfLocation: "Digital Repository",
+        availableCopies: 1,
+        totalCopies: 1
+      },
+      {
+        isbn: "978-0812968255",
+        title: "Meditations: The Emperor's Handbook",
+        author: "Marcus Aurelius",
+        subject: "Philosophy",
+        publicationYear: 2002,
+        callNumber: "B580 .A97 2002",
+        description: "Private spiritual reflections on stoic duty, internal equanimity, and mortality.",
+        coverImage: "https://images.unsplash.com/photo-1506880018603-83d5b814b5a6?auto=format&fit=crop&w=600&q=80",
+        displayStatus: "LOANED",
+        activeBarcode: "BC-1004-A",
+        shelfLocation: "Stack 1 • Shelf B",
+        availableCopies: 0,
+        totalCopies: 1
+      },
+      {
+        isbn: "978-1491929124",
+        title: "Site Reliability Engineering",
+        author: "Betsy Beyer, Chris Jones, Niall Murphy",
+        subject: "Cloud Architecture",
+        publicationYear: 2016,
+        callNumber: "TK5105.875 .S58",
+        description: "Engineering practices pioneered by Google for operating planetary-scale software systems.",
+        coverImage: "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=600&q=80",
+        displayStatus: "RESERVED",
+        activeBarcode: "BC-1005-A",
+        shelfLocation: "Holds Reserve Shelf",
+        availableCopies: 0,
+        totalCopies: 1
+      },
+      {
+        isbn: "978-0441569595",
+        title: "Neuromancer",
+        author: "William Gibson",
+        subject: "Speculative Fiction",
+        publicationYear: 1984,
+        callNumber: "PS3557 .I226 N4",
+        description: "Hugo and Nebula winning novel that introduced cyberspace, AI constructs, and the neon sprawl.",
+        coverImage: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?auto=format&fit=crop&w=600&q=80",
+        displayStatus: "AVAILABLE",
+        activeBarcode: "BC-1006-A",
+        shelfLocation: "Fiction Wing • Row 2",
+        availableCopies: 1,
+        totalCopies: 1
+      }
+    ];
+
+    let localUsers = [
+      { id: "LIB-1001", name: "Clara Oswald", email: "clara.oswald@oxford.ac.uk", country: "United Kingdom", accountStatus: "ACTIVE", totalCheckedOut: 1 },
+      { id: "LIB-1002", name: "Marcus Vance", email: "m.vance@mit.edu", country: "United States", accountStatus: "ACTIVE", totalCheckedOut: 1 },
+      { id: "LIB-1003", name: "Elena Rostova", email: "elena.rostova@ethz.ch", country: "Switzerland", accountStatus: "ACTIVE", totalCheckedOut: 0 },
+      { id: "LIB-1004", name: "Kenji Takahashi", email: "kenji.t@tokyo-ac.jp", country: "Japan", accountStatus: "ACTIVE", totalCheckedOut: 0 },
+      { id: "LIB-1005", name: "Sophia Dubois", email: "sophia.d@sorbonne.fr", country: "France", accountStatus: "PENDING", totalCheckedOut: 0 },
+      { id: "LIB-1006", name: "David Miller", email: "d.miller@edinburgh.ac.uk", country: "United Kingdom", accountStatus: "SUSPENDED", totalCheckedOut: 0 }
+    ];
+
+    const state = {
+      currentView: 'catalog',
+      searchQuery: '',
+      statusFilter: 'ALL',
+      userSearchQuery: '',
+      editingUserId: null
+    };
+
+    // ------------------------------------------------------------------------
+    // BACKEND CONNECTIVITY CHECK
+    // ------------------------------------------------------------------------
+    async function checkBackendConnection(showNotification = false) {
+      const pill = document.getElementById('api-status-pill');
+      const dot = document.getElementById('api-status-dot');
+      const text = document.getElementById('api-status-text');
+
+      try {
+        const res = await fetch(`${API_BASE}/status`, { method: 'GET' });
+        if (res.ok) {
+          const statusData = await res.json();
+          isBackendLive = true;
+          dot.className = "w-2 h-2 rounded-full bg-emerald-600";
+          text.textContent = `Express.js • ${statusData.database || 'MongoDB Atlas'}`;
+          pill.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+          if (showNotification) showToast(`Connected to Express.js backend (${statusData.database})!`, "success");
+          loadCatalog();
+          loadUsers();
+          return;
+        }
+      } catch (err) {
+        // Fallback check
+        try {
+          const res = await fetch(`${API_BASE}/catalog/search?query=`, { method: 'GET' });
+          if (res.ok) {
+            isBackendLive = true;
+            dot.className = "w-2 h-2 rounded-full bg-emerald-600";
+            text.textContent = "Express.js REST API Connected";
+            pill.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+            loadCatalog();
+            loadUsers();
+            return;
+          }
+        } catch (e) {}
+      }
+
+      isBackendLive = false;
+      dot.className = "w-2 h-2 rounded-full bg-stone-400";
+      text.textContent = "Local In-Memory Mode";
+      pill.className = "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-stone-100 text-stone-600 border border-stone-200";
+      if (showNotification) showToast("Express backend offline — running in responsive local simulation mode.", "info");
+      loadCatalog();
+      loadUsers();
+    }
+
+    // ------------------------------------------------------------------------
+    // TOAST NOTIFICATION UTILITY
+    // ------------------------------------------------------------------------
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      
+      let border = 'border-stone-200 text-stone-800';
+      let icon = 'fa-circle-info text-stone-600';
+      
+      if (type === 'success') {
+        border = 'border-emerald-200 text-emerald-950';
+        icon = 'fa-circle-check text-emerald-700';
+      } else if (type === 'conflict' || type === 'error') {
+        border = 'border-rose-200 text-rose-950 bg-rose-50/95';
+        icon = 'fa-triangle-exclamation text-rose-600';
+      }
+
+      toast.className = `toast-slide pointer-events-auto flex items-start gap-3 p-3.5 bg-white/95 backdrop-blur-md rounded-xl shadow-lg border text-xs ${border}`;
+      toast.innerHTML = `
+        <i class="fa-solid ${icon} mt-0.5 text-sm shrink-0"></i>
+        <div class="flex-1 leading-snug">
+          <div class="font-bold mb-0.5">${type === 'conflict' ? 'Concurrency Conflict (409)' : 'Notice'}</div>
+          <div>${message}</div>
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-stone-400 hover:text-stone-600 p-0.5">
+          <i class="fa-solid fa-xmark text-xs"></i>
+        </button>
+      `;
+
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 4500);
+    }
+
+    // ------------------------------------------------------------------------
+    // CATALOG API & RENDERING
+    // ------------------------------------------------------------------------
+    async function loadCatalog() {
+      let books = [];
+      if (isBackendLive) {
+        try {
+          const res = await fetch(`${API_BASE}/catalog/search?query=${encodeURIComponent(state.searchQuery)}`);
+          if (res.ok) {
+            books = await res.json();
+          }
+        } catch (e) {
+          books = localBooks;
+        }
+      } else {
+        books = localBooks.filter(b => {
+          if (!state.searchQuery) return true;
+          const q = state.searchQuery.toLowerCase();
+          return b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q) || b.isbn.includes(q);
+        });
+      }
+
+      // Filter by status
+      if (state.statusFilter !== 'ALL') {
+        books = books.filter(b => b.displayStatus === state.statusFilter);
+      }
+
+      renderCatalog(books);
+    }
+
+    function renderCatalog(books) {
+      const grid = document.getElementById('catalog-grid');
+      const empty = document.getElementById('catalog-empty');
+
+      // Update counters
+      const avail = books.filter(b => b.displayStatus === 'AVAILABLE').length;
+      const loaned = books.filter(b => b.displayStatus === 'LOANED').length;
+      const reserved = books.filter(b => b.displayStatus === 'RESERVED').length;
+      document.getElementById('stat-avail-count').textContent = avail;
+      document.getElementById('stat-loaned-count').textContent = loaned;
+      document.getElementById('stat-reserved-count').textContent = reserved;
+      document.getElementById('badge-catalog-count').textContent = books.length;
+
+      if (books.length === 0) {
+        grid.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+
+      grid.innerHTML = books.map(book => {
+        let badge = '';
+        let actions = '';
+
+        if (book.displayStatus === 'AVAILABLE') {
+          badge = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">● Available on Shelf</span>';
+          actions = `
+            <button onclick="handleCheckout('${book.activeBarcode}', '${book.title}')" class="w-full py-2 px-3 rounded-lg bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold shadow-sm transition-colors flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-stamp text-[10px]"></i>
+              <span>Borrow Copy (${book.activeBarcode || 'Item'})</span>
+            </button>
+          `;
+        } else if (book.displayStatus === 'LOANED') {
+          badge = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">● Checked Out (Due soon)</span>';
+          actions = `
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="handleReserve('${book.isbn}', '${book.title}')" class="py-2 px-3 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-700 text-xs font-medium transition-colors">
+                Place Hold
+              </button>
+              <button onclick="handleReturn('${book.activeBarcode}', '${book.title}')" class="py-2 px-3 rounded-lg bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-semibold transition-colors">
+                Return Book
+              </button>
+            </div>
+          `;
+        } else if (book.displayStatus === 'RESERVED') {
+          badge = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-50 text-purple-800 border border-purple-200">● Reserved on Hold</span>';
+          actions = `
+            <div class="grid grid-cols-2 gap-2">
+              <button onclick="handleCheckout('${book.activeBarcode}', '${book.title}')" class="py-2 px-3 rounded-lg bg-purple-900 hover:bg-purple-800 text-white text-xs font-semibold transition-colors">
+                Claim Copy
+              </button>
+              <button onclick="handleReturn('${book.activeBarcode}', '${book.title}')" class="py-2 px-3 rounded-lg border border-stone-200 hover:bg-stone-50 text-stone-700 text-xs font-medium transition-colors">
+                Cancel Hold
+              </button>
+            </div>
+          `;
+        } else {
+          badge = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-sky-50 text-sky-800 border border-sky-200">● Digital Stream Ready</span>';
+          actions = `
+            <button onclick="openReaderModal('${book.title}', '${book.author}')" class="w-full py-2 px-3 rounded-lg bg-stone-900 hover:bg-stone-800 text-white text-xs font-semibold transition-colors flex items-center justify-center gap-1.5">
+              <i class="fa-solid fa-book-reader text-[10px]"></i>
+              <span>Read Online / Sample</span>
+            </button>
+          `;
+        }
+
+        return `
+          <div class="book-card bg-white rounded-xl border border-stone-200/90 shadow-sm overflow-hidden flex flex-col justify-between">
+            <div>
+              <!-- Realistic Book Cover & Spine -->
+              <div class="relative h-44 bg-stone-900 overflow-hidden">
+                <img src="${book.coverImage}" alt="${book.title}" class="w-full h-full object-cover opacity-85">
+                <div class="absolute inset-0 bg-gradient-to-t from-stone-950 via-stone-950/20 to-transparent"></div>
+                <div class="absolute top-3 left-3">${badge}</div>
+                <div class="absolute bottom-2.5 left-3 right-3 flex items-center justify-between text-[11px] text-stone-300 font-mono">
+                  <span>${book.callNumber || book.isbn}</span>
+                  <span class="text-stone-400 font-sans">${book.publicationYear || ''}</span>
+                </div>
+              </div>
+
+              <!-- Content Body -->
+              <div class="p-4 sm:p-5">
+                <div class="text-[11px] uppercase tracking-wider font-semibold text-stone-400 mb-1">${book.subject}</div>
+                <h3 class="font-serif font-bold text-lg text-stone-900 leading-snug line-clamp-1" title="${book.title}">${book.title}</h3>
+                <p class="font-serif italic text-xs text-stone-600 mt-0.5 mb-2.5">by ${book.author}</p>
+                <p class="text-xs text-stone-600 line-clamp-2 leading-relaxed">${book.description}</p>
+                
+                <div class="mt-3 pt-2.5 border-t border-stone-100 flex items-center justify-between text-[11px] text-stone-500 font-mono">
+                  <span>Loc: ${book.shelfLocation || 'Stacks'}</span>
+                  <span>ISBN: ${book.isbn.substring(0, 13)}...</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Actions -->
+            <div class="p-4 sm:p-5 pt-0 border-t border-stone-100/80">
+              <div class="pt-3">${actions}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ------------------------------------------------------------------------
+    // CIRCULATION ACTION HANDLERS (CHECKOUT, RETURN, RESERVE)
+    // Handled with Optimistic Locking Failure detection (HTTP 409 Conflict)
+    // ------------------------------------------------------------------------
+    async function handleCheckout(barcode, title) {
+      const activeMemberId = "LIB-1001"; // Clara Oswald
+
+      if (isBackendLive) {
+        try {
+          const res = await fetch(`${API_BASE}/loans/checkout`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ memberId: activeMemberId, barcode: barcode })
+          });
+
+          if (res.status === 409) {
+            const errData = await res.json();
+            showToast(errData.message || "Concurrent checkout conflict: This physical copy was just checked out by another patron.", "conflict");
+            loadCatalog();
+            return;
+          }
+
+          if (!res.ok) {
+            const err = await res.json();
+            showToast(err.message || "Checkout failed", "error");
+            return;
+          }
+
+          showToast(`"${title}" successfully checked out! Due date: 21 days.`, 'success');
+          loadCatalog();
+          loadUsers();
+          return;
+        } catch (err) {
+          // Fall through to local simulation
+        }
+      }
+
+      // Local In-Memory Fallback
+      const book = localBooks.find(b => b.activeBarcode === barcode);
+      if (book) {
+        book.displayStatus = 'LOANED';
+        book.availableCopies = Math.max(0, book.availableCopies - 1);
+        const user = localUsers.find(u => u.id === activeMemberId);
+        if (user) user.totalCheckedOut++;
+        showToast(`"${title}" checked out under Clara Oswald (LIB-1001).`, 'success');
+        renderCatalog(localBooks);
+        renderUsers(localUsers);
+      }
+    }
+
+    async function handleReturn(barcode, title) {
+      if (isBackendLive) {
+        try {
+          const res = await fetch(`${API_BASE}/loans/return`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ barcode: barcode })
+          });
+
+          if (res.ok) {
+            showToast(`"${title}" returned to circulation.`, 'success');
+            loadCatalog();
+            loadUsers();
+            return;
+          }
+        } catch (err) {}
+      }
+
+      // Local In-Memory Fallback
+      const book = localBooks.find(b => b.activeBarcode === barcode);
+      if (book) {
+        book.displayStatus = 'AVAILABLE';
+        book.availableCopies++;
+        const user = localUsers.find(u => u.id === 'LIB-1001');
+        if (user && user.totalCheckedOut > 0) user.totalCheckedOut--;
+        showToast(`"${title}" returned back to shelf inventory.`, 'success');
+        renderCatalog(localBooks);
+        renderUsers(localUsers);
+      }
+    }
+
+    async function handleReserve(isbn, title) {
+      const activeMemberId = "LIB-1001";
+
+      if (isBackendLive) {
+        try {
+          const res = await fetch(`${API_BASE}/reservations`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ memberId: activeMemberId, isbn: isbn })
+          });
+
+          if (res.status === 409) {
+            showToast("You already hold an active reservation for this title.", "error");
+            return;
+          }
+
+          if (res.ok) {
+            showToast(`Hold reservation placed for "${title}".`, 'success');
+            loadCatalog();
+            return;
+          }
+        } catch (err) {}
+      }
+
+      // Local In-Memory Fallback
+      const book = localBooks.find(b => b.isbn === isbn);
+      if (book) {
+        book.displayStatus = 'RESERVED';
+        showToast(`Hold confirmed for "${title}". Queue position: #1.`, 'success');
+        renderCatalog(localBooks);
+      }
+    }
+
+    // ------------------------------------------------------------------------
+    // USER MANAGEMENT CRUD (ADMIN VIEW)
+    // ------------------------------------------------------------------------
+    async function loadUsers() {
+      let users = [];
+      if (isBackendLive) {
+        try {
+          const res = await fetch(`${API_BASE}/users`);
+          if (res.ok) users = await res.json();
+        } catch (e) {
+          users = localUsers;
+        }
+      } else {
+        users = localUsers;
+      }
+
+      if (state.userSearchQuery) {
+        const q = state.userSearchQuery.toLowerCase();
+        users = users.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.id.toLowerCase().includes(q) || u.country.toLowerCase().includes(q));
+      }
+
+      renderUsers(users);
+    }
+
+    function renderUsers(users) {
+      const tbody = document.getElementById('users-table-body');
+      document.getElementById('user-count-label').textContent = users.length;
+      document.getElementById('badge-users-count').textContent = users.length;
+
+      tbody.innerHTML = users.map(user => {
+        let statusBadge = '';
+        if (user.accountStatus === 'ACTIVE') {
+          statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">Active • Good Standing</span>';
+        } else if (user.accountStatus === 'PENDING') {
+          statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200">Pending Review</span>';
+        } else {
+          statusBadge = '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-rose-50 text-rose-800 border border-rose-200">Suspended Hold</span>';
+        }
+
+        return `
+          <tr class="hover:bg-stone-50/80 transition-colors">
+            <td class="py-3.5 px-5 font-mono text-xs font-semibold text-stone-800">${user.id}</td>
+            <td class="py-3.5 px-5 font-medium text-stone-900">${user.name}</td>
+            <td class="py-3.5 px-5 text-stone-600 font-mono text-xs">${user.email}</td>
+            <td class="py-3.5 px-5 text-stone-700">${user.country || 'United States'}</td>
+            <td class="py-3.5 px-5">${statusBadge}</td>
+            <td class="py-3.5 px-5 text-center font-mono font-bold text-stone-800">${user.totalCheckedOut}</td>
+            <td class="py-3.5 px-5 text-right">
+              <div class="flex items-center justify-end gap-1.5">
+                <button onclick="openEditUserModal('${user.id}')" class="px-2.5 py-1 text-xs text-stone-600 hover:text-stone-900 rounded border border-transparent hover:border-stone-200">
+                  Edit
+                </button>
+                <button onclick="handleDeleteUser('${user.id}', '${user.name}')" class="px-2.5 py-1 text-xs text-rose-600 hover:text-rose-800 rounded border border-transparent hover:border-rose-200">
+                  Delete
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function openAddUserModal() {
+      state.editingUserId = null;
+      document.getElementById('form-user-mode').value = 'create';
+      document.getElementById('user-modal-title').textContent = "Enroll New Patron";
+      document.getElementById('user-modal-subtitle').textContent = "Issue library credentials and assign borrowing privileges.";
+      document.getElementById('form-user-id').readOnly = false;
+      document.getElementById('form-user-id').value = `LIB-${1000 + localUsers.length + 1}`;
+      document.getElementById('form-user-name').value = '';
+      document.getElementById('form-user-email').value = '';
+      document.getElementById('form-user-country').value = '';
+      document.getElementById('form-user-status').value = 'ACTIVE';
+      document.getElementById('user-modal').classList.remove('hidden');
+    }
+
+    function openEditUserModal(id) {
+      const user = localUsers.find(u => u.id === id);
+      if (!user) return;
+
+      state.editingUserId = id;
+      document.getElementById('form-user-mode').value = 'edit';
+      document.getElementById('user-modal-title').textContent = "Update Patron Details";
+      document.getElementById('user-modal-subtitle').textContent = `Modifying credentials for ${user.name}.`;
+      document.getElementById('form-user-id').readOnly = true;
+      document.getElementById('form-user-id').value = user.id;
+      document.getElementById('form-user-name').value = user.name;
+      document.getElementById('form-user-email').value = user.email;
+      document.getElementById('form-user-country').value = user.country;
+      document.getElementById('form-user-status').value = user.accountStatus;
+      document.getElementById('user-modal').classList.remove('hidden');
+    }
+
+    function closeUserModal() {
+      document.getElementById('user-modal').classList.add('hidden');
+    }
+
+    async function handleUserFormSubmit(e) {
+      e.preventDefault();
+      const mode = document.getElementById('form-user-mode').value;
+      const id = document.getElementById('form-user-id').value.trim();
+      const name = document.getElementById('form-user-name').value.trim();
+      const email = document.getElementById('form-user-email').value.trim();
+      const country = document.getElementById('form-user-country').value.trim();
+      const status = document.getElementById('form-user-status').value;
+
+      const payload = { id, name, email, country, accountStatus: status, totalCheckedOut: 0 };
+
+      if (isBackendLive) {
+        try {
+          let res;
+          if (mode === 'create') {
+            res = await fetch(`${API_BASE}/users`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+          } else {
+            res = await fetch(`${API_BASE}/users/${id}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+          }
+
+          if (res.ok) {
+            closeUserModal();
+            showToast(`Patron record ${name} saved successfully.`, 'success');
+            loadUsers();
+            return;
+          }
+        } catch (err) {}
+      }
+
+      // Local In-Memory Fallback
+      if (mode === 'create') {
+        localUsers.unshift(payload);
+        showToast(`Patron ${name} enrolled.`, 'success');
+      } else {
+        const idx = localUsers.findIndex(u => u.id === state.editingUserId);
+        if (idx !== -1) {
+          localUsers[idx].name = name;
+          localUsers[idx].email = email;
+          localUsers[idx].country = country;
+          localUsers[idx].accountStatus = status;
+          showToast(`Patron ${name} updated.`, 'success');
+        }
+      }
+
+      closeUserModal();
+      renderUsers(localUsers);
+    }
+
+    async function handleDeleteUser(id, name) {
+      if (!confirm(`Are you sure you want to permanently revoke patron account for ${name} (${id})?`)) return;
+
+      if (isBackendLive) {
+        try {
+          const res = await fetch(`${API_BASE}/users/${id}`, { method: 'DELETE' });
+          if (res.ok) {
+            showToast(`Patron ${name} removed from registry.`, 'success');
+            loadUsers();
+            return;
+          } else {
+            const err = await res.json();
+            showToast(err.message || "Failed to delete patron", 'error');
+            return;
+          }
+        } catch (err) {}
+      }
+
+      // Local In-Memory Fallback
+      const idx = localUsers.findIndex(u => u.id === id);
+      if (idx !== -1) {
+        localUsers.splice(idx, 1);
+        showToast(`Patron ${name} deleted.`, 'success');
+        renderUsers(localUsers);
+      }
+    }
+
+    // ------------------------------------------------------------------------
+    // UI VIEW CONTROLLERS & READER MODAL
+    // ------------------------------------------------------------------------
+    function switchView(viewName) {
+      state.currentView = viewName;
+      const vCat = document.getElementById('view-catalog');
+      const vUsers = document.getElementById('view-users');
+      const bCat = document.getElementById('tab-btn-catalog');
+      const bUsers = document.getElementById('tab-btn-users');
+
+      if (viewName === 'catalog') {
+        vCat.classList.remove('hidden');
+        vUsers.classList.add('hidden');
+        bCat.className = "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all bg-white text-stone-900 shadow-sm border border-stone-200/60";
+        bUsers.className = "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all text-stone-600 hover:text-stone-900 hover:bg-stone-50";
+        loadCatalog();
+      } else {
+        vCat.classList.add('hidden');
+        vUsers.classList.remove('hidden');
+        bUsers.className = "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all bg-white text-stone-900 shadow-sm border border-stone-200/60";
+        bCat.className = "flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all text-stone-600 hover:text-stone-900 hover:bg-stone-50";
+        loadUsers();
+      }
+    }
+
+    function handleSearch(q) {
+      state.searchQuery = q;
+      document.getElementById('btn-clear-search').classList.toggle('hidden', !q);
+      loadCatalog();
+    }
+
+    function clearSearch() {
+      document.getElementById('catalog-search-input').value = '';
+      state.searchQuery = '';
+      document.getElementById('btn-clear-search').classList.add('hidden');
+      loadCatalog();
+    }
+
+    function setFilter(status) {
+      state.statusFilter = status;
+      const buttons = {
+        'ALL': document.getElementById('filter-all'),
+        'AVAILABLE': document.getElementById('filter-avail'),
+        'LOANED': document.getElementById('filter-loaned'),
+        'DIGITAL': document.getElementById('filter-digital')
+      };
+
+      Object.keys(buttons).forEach(k => {
+        if (k === status) {
+          buttons[k].className = "px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap bg-stone-900 text-white";
+        } else {
+          buttons[k].className = "px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap bg-stone-100 text-stone-700 hover:bg-stone-200";
+        }
+      });
+
+      loadCatalog();
+    }
+
+    function handleUserSearch(q) {
+      state.userSearchQuery = q;
+      loadUsers();
+    }
+
+    function openReaderModal(title, author) {
+      document.getElementById('reader-book-title').textContent = title;
+      document.getElementById('reader-book-author').textContent = `by ${author}`;
+      document.getElementById('reader-modal').classList.remove('hidden');
+    }
+
+    function closeReaderModal() {
+      document.getElementById('reader-modal').classList.add('hidden');
+    }
+
+    // Initialize application
+    window.addEventListener('DOMContentLoaded', () => {
+      checkBackendConnection();
+    });
+  </script>
+</body>
+</html>

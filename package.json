@@ -1,0 +1,25 @@
+{
+  "name": "athenaeum-library-system",
+  "version": "1.0.0",
+  "description": "Library Management and Digital Lending System (Express.js, MongoDB Atlas, Editorial Frontend)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "library",
+    "express",
+    "nodejs",
+    "mongodb",
+    "mongoose"
+  ],
+  "author": "The Athenaeum Guild",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongoose": "^8.3.1"
+  }
+}
